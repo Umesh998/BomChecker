@@ -1,0 +1,237 @@
+﻿@model BomChecker.Models.BomVerifyResult
+@{
+    ViewData["Title"] = "BOM Verify Results";
+    var resultKey = TempData["ResultKey"]?.ToString() ?? "";
+}
+
+<div class="container-fluid py-4">
+
+    @* Summary Cards *@
+    <div class="row g-3 mb-4" style="max-width: 860px;">
+        <div class="col-6 col-md-3">
+            <div class="card border rounded-3 p-3 text-center">
+                <div class="small mb-1" style="color:var(--text-muted);">Total Rows</div>
+                <div class="fw-semibold fs-5">@Model.ProcessedRows</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border rounded-3 p-3 text-center">
+                <div class="small mb-1" style="color:var(--text-muted);">Strong Match</div>
+                <div class="fw-semibold fs-5 text-success">@Model.StrongMatchCount</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border rounded-3 p-3 text-center">
+                <div class="small mb-1" style="color:var(--text-muted);">Partial Match</div>
+                <div class="fw-semibold fs-5 text-warning">@Model.PartialMatchCount</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border rounded-3 p-3 text-center">
+                <div class="small mb-1" style="color:var(--text-muted);">Not Found</div>
+                <div class="fw-semibold fs-5 text-danger">@Model.NotFoundCount</div>
+            </div>
+        </div>
+    </div>
+
+    @* Toolbar *@
+    <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+        <span class="text-muted small">@Model.FileName</span>
+        <div class="ms-auto d-flex gap-2">
+            <a asp-action="Index" asp-controller="Bom" class="btn btn-sm btn-outline-secondary">
+                ← New Upload
+            </a>
+            @if (!string.IsNullOrEmpty(resultKey))
+            {
+                <a asp-action="Export" asp-controller="Bom"
+                   asp-route-key="@resultKey"
+                   class="btn btn-sm btn-success">
+                    ⬇ Download Excel
+                </a>
+            }
+        </div>
+    </div>
+
+    @* Legend *@
+    <div class="d-flex gap-3 mb-3 flex-wrap">
+        <span class="small text-muted">Match %:</span>
+        <span class="badge badge-strong">≥80% Strong</span>
+        <span class="badge badge-partial">50–79% Partial</span>
+        <span class="badge badge-weak">&lt;50% Weak</span>
+        <span class="ms-3 small text-muted">Mount:</span>
+        <span class="badge badge-smt">SMT</span>
+        <span class="badge badge-th">Through-Hole</span>
+    </div>
+
+    @* Results Table *@
+    <div class="table-responsive border rounded-3">
+        <table class="table table-bordered table-sm mb-0 align-middle"
+               style="font-size: 12.5px; min-width: 900px;">
+            <thead class="table-dark">
+                <tr>
+                    <th rowspan="2" class="align-bottom" style="min-width:40px;">#</th>
+                    <th rowspan="2" class="align-bottom" style="min-width:160px;">Original Description</th>
+
+                    @foreach (var col in Model.PartNumberColumns)
+                    {
+                        <th colspan="6" class="text-center border-start border-2">@col</th>
+                    }
+
+                    <th rowspan="2" class="align-bottom border-start border-2"
+                        style="min-width:110px;">Best Match</th>
+                </tr>
+                <tr>
+                    @foreach (var col in Model.PartNumberColumns)
+                    {
+                        <th class="border-start border-2" style="min-width:90px;">Part No.</th>
+                        <th style="min-width:150px;">API Description</th>
+                        <th style="min-width:70px; text-align:center;">Match %</th>
+                        <th style="min-width:90px;">Package</th>
+                        <th style="min-width:120px;">MSL Level</th>
+                        <th style="min-width:90px;">Mount Type</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Rows)
+                {
+                    <tr>
+                        <td class="text-muted">@row.RowNumber</td>
+                        <td>
+                            <span style="font-size:12px;">@row.OriginalDescription</span>
+                        </td>
+
+                        @foreach (var colName in Model.PartNumberColumns)
+                        {
+                            var pr = row.PartResults.FirstOrDefault(p => p.ColumnName == colName);
+
+                            if (pr == null || string.IsNullOrWhiteSpace(pr.PartNumber))
+                            {
+                                <td class="border-start border-2 text-muted">—</td>
+                                <td class="text-muted">—</td>
+                                <td class="text-muted text-center">—</td>
+                                <td class="text-muted">—</td>
+                                <td class="text-muted">—</td>
+                                <td class="text-muted">—</td>
+                            }
+                            else
+                            {
+                                @* Part Number *@
+                                <td class="border-start border-2 fw-medium">
+                                    @if (!string.IsNullOrEmpty(pr.ProductUrl))
+                                    {
+                                        <a href="@pr.ProductUrl" target="_blank"
+                                           class="text-decoration-none">
+                                            @pr.PartNumber
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        @pr.PartNumber
+                                    }
+                                    @if (!string.IsNullOrEmpty(pr.Source))
+                                    {
+                                        <br />
+                                        <span class="text-muted" style="font-size:10px; font-weight:400;">
+                                            @pr.Source
+                                        </span>
+                                    }
+                                </td>
+
+                                @* API Description *@
+                                <td>
+                                    <span>@(string.IsNullOrEmpty(pr.ApiDescription) ? "—" : pr.ApiDescription)</span>
+                                </td>
+
+                                @* Match % *@
+                                <td class="text-center">
+                                    @if (!pr.Found)
+                                    {
+                                        <span class="badge bg-danger bg-opacity-75">Not found</span>
+                                    }
+                                    else if (pr.MatchScore >= 80)
+                                    {
+                                        <span class="badge badge-strong">@pr.MatchScore%</span>
+                                    }
+                                    else if (pr.MatchScore >= 50)
+                                    {
+                                        <span class="badge badge-partial">@pr.MatchScore%</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-weak">@pr.MatchScore%</span>
+                                    }
+                                </td>
+
+                                @* Package *@
+                                <td style="font-size:11.5px;">
+                                    @(string.IsNullOrEmpty(pr.Package) ? "N/A" : pr.Package)
+                                </td>
+
+                                @* MSL Level *@
+                                <td>
+                                    @if (pr.MslLevel != "N/A" && !string.IsNullOrEmpty(pr.MslLevel))
+                                    {
+                                        <span class="badge badge-msl" style="font-size:11px; padding:2px 7px; border-radius:4px; display:inline-block;">
+                                            @pr.MslLevel
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted" style="font-size:11px;">N/A</span>
+                                    }
+                                </td>
+
+                                @* Mount Type *@
+                                <td>
+                                    @if (pr.MountType == "SMT")
+                                    {
+                                        <span class="badge badge-smt">SMT</span>
+                                    }
+                                    else if (pr.MountType == "Through-Hole")
+                                    {
+                                        <span class="badge badge-th">Through-Hole</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted" style="font-size:11px;">N/A</span>
+                                    }
+                                </td>
+                            }
+                        }
+
+                        @* Best Match *@
+                        <td class="border-start border-2">
+                            @if (!string.IsNullOrEmpty(row.BestMatchPartNumber))
+                            {
+                                <span class="badge badge-best" style="font-size:11px;">
+                                    @row.BestMatchPartNumber ✓
+                                </span>
+                                <br />
+                                <span class="text-muted" style="font-size:10px;">
+                                    @row.BestMatchScore%
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-3 d-flex justify-content-end">
+        @if (!string.IsNullOrEmpty(resultKey))
+        {
+            <a asp-action="Export" asp-controller="Bom"
+               asp-route-key="@resultKey"
+               class="btn btn-success">
+                ⬇ Download Excel
+            </a>
+        }
+    </div>
+
+</div>

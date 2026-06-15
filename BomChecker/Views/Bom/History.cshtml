@@ -1,0 +1,85 @@
+﻿@model List<BomChecker.Models.BomReport>
+@{
+    ViewData["Title"] = "Report History";
+}
+
+<div class="container py-4" style="max-width: 860px;">
+
+    <div class="d-flex align-items-center mb-4">
+        <div>
+            <h4 class="fw-semibold mb-1">Report History</h4>
+            <p class="text-muted small mb-0">All previously verified BOM reports</p>
+        </div>
+        <a asp-action="Index" asp-controller="Bom"
+           class="btn btn-primary ms-auto">
+            + New Upload
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card border rounded-3 p-5 text-center text-muted">
+            <p class="mb-2">No reports yet.</p>
+            <a asp-action="Index" asp-controller="Bom" class="btn btn-sm btn-outline-primary">
+                Upload your first BOM
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="card border rounded-3 overflow-hidden">
+            <table class="table table-hover mb-0" style="font-size: 13.5px;">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>File Name</th>
+                        <th>Uploaded</th>
+                        <th class="text-center">Rows</th>
+                        <th class="text-center">Processed</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var report in Model)
+                    {
+                        <tr>
+                            <td class="text-muted">@report.Id</td>
+                            <td>@report.FileName</td>
+                            <td class="text-muted">
+                                @report.UploadedAt.ToString("dd MMM yyyy, hh:mm tt")
+                            </td>
+                            <td class="text-center">@report.TotalRows</td>
+                            <td class="text-center">@report.ProcessedRows</td>
+                            <td class="text-end">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a asp-action="ViewReport"
+                                       asp-controller="Bom"
+                                       asp-route-id="@report.Id"
+                                       class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                    <a asp-action="Export"
+                                       asp-controller="Bom"
+                                       asp-route-key="report_@(report.Id)"
+                                       class="btn btn-sm btn-outline-success">
+                                        ⬇ Excel
+                                    </a>
+                                    <form asp-action="DeleteReport"
+                                          asp-controller="Bom"
+                                          method="post"
+                                          onsubmit="return confirm('Delete this report?')">
+                                        <input type="hidden" name="id" value="@report.Id" />
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

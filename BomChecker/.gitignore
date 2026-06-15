@@ -1,0 +1,48 @@
+﻿## === SENSITIVE DATA (PROTECT YOUR API KEYS) ===
+# These files contain your DigiKey/Mouser/LCSC secrets
+appsettings.json
+appsettings.Development.json
+secrets.json
+*.pfx
+*.publishsettings
+
+## === .NET BUILD ARTIFACTS ===
+[Bb]in/
+[Oo]bj/
+[Rr]elease/
+[Dd]ebug/
+publish/
+
+## === VISUAL STUDIO FILES ===
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.ide/
+
+## === NUGET PACKAGES ===
+# Packages are restored automatically by Visual Studio/dotnet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+project.lock.json
+project.fragment.lock.json
+
+## === ENTITY FRAMEWORK / DATABASES ===
+# If you use a local SQL Express or SQLite file
+*.db
+*.db-shm
+*.db-wal
+*.mdf
+*.ldf
+
+## === OPERATING SYSTEM JUNK ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+

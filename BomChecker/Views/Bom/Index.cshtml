@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "BOM Checker — Upload";
+}
+
+<div class="container py-4" style="max-width: 640px;">
+
+    <div class="mb-4">
+        <h4 class="fw-semibold mb-1">BOM Description Verifier</h4>
+        <p class="text-muted small mb-0">
+            Upload a BOM sheet, select your description and part number columns,
+            and get match scores, MSL levels, packages and mount types for every part.
+        </p>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger py-2 small">@ViewBag.Error</div>
+    }
+
+    <div class="card border rounded-3 p-4">
+        <form asp-action="Upload" asp-controller="Bom"
+              method="post" enctype="multipart/form-data">
+
+            <div class="mb-3">
+                <label class="form-label fw-medium">Upload BOM file</label>
+                <input type="file" name="bomFile" accept=".xlsx"
+                       class="form-control" required />
+                <div class="form-text">Only .xlsx files. Row 1 must contain column headers.</div>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">
+                    Upload & Select Columns →
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="mt-4">
+        <p class="text-muted small fw-medium mb-2">How it works</p>
+        <div class="d-flex flex-column gap-2">
+            <div class="d-flex gap-3 align-items-start">
+                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary fw-medium px-2">1</span>
+                <span class="small text-muted">Upload your BOM Excel file</span>
+            </div>
+            <div class="d-flex gap-3 align-items-start">
+                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary fw-medium px-2">2</span>
+                <span class="small text-muted">Select which column has the description and which columns have part numbers</span>
+            </div>
+            <div class="d-flex gap-3 align-items-start">
+                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary fw-medium px-2">3</span>
+                <span class="small text-muted">Get match %, API description, package, MSL level and mount type for each part</span>
+            </div>
+            <div class="d-flex gap-3 align-items-start">
+                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary fw-medium px-2">4</span>
+                <span class="small text-muted">Download results as Excel</span>
+            </div>
+        </div>
+    </div>
+
+</div>

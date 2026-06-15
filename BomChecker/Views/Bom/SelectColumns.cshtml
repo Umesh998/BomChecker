@@ -1,0 +1,83 @@
+﻿@model BomChecker.Models.BomUploadViewModel
+@{
+    ViewData["Title"] = "Select Columns";
+}
+
+<div class="container py-4" style="max-width: 640px;">
+
+    <div class="mb-4">
+        <h4 class="fw-semibold mb-1">Select Columns</h4>
+        <p class="text-muted small mb-0">
+            File: <strong>@Model.FileName</strong> &mdash; @Model.TotalRows rows detected
+        </p>
+    </div>
+
+    <form asp-action="Verify" asp-controller="Bom" method="post">
+        <input type="hidden" name="CacheKey" value="@Model.CacheKey" />
+
+        @* Description Column *@
+        <div class="card border rounded-3 p-4 mb-3">
+            <p class="fw-medium mb-1">Description column <span class="text-danger">*</span></p>
+            <p class="text-muted small mb-3">
+                Select the column that contains the original component description from your BOM.
+            </p>
+            <div class="d-flex flex-column gap-2">
+                @foreach (var header in Model.ColumnHeaders)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio"
+                               name="DescriptionColumn" value="@header"
+                               id="desc_@header" required />
+                        <label class="form-check-label" for="desc_@header">
+                            @header
+                        </label>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Part Number Columns *@
+        <div class="card border rounded-3 p-4 mb-4">
+            <p class="fw-medium mb-1">Part number columns <span class="text-danger">*</span></p>
+            <p class="text-muted small mb-3">
+                Select one or more columns that contain part numbers to verify.
+                Each selected column will be checked separately.
+            </p>
+            <div class="d-flex flex-column gap-2">
+                @foreach (var header in Model.ColumnHeaders)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox"
+                               name="PartNumberColumns" value="@header"
+                               id="pn_@header" />
+                        <label class="form-check-label" for="pn_@header">
+                            @header
+                        </label>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="alert alert-warning py-2 small mb-3">
+            <strong>Note:</strong> Verification may take a few minutes depending on the number of rows
+            and part number columns selected. Please do not close the page.
+        </div>
+
+        <div class="d-flex gap-2">
+            <a asp-action="Index" asp-controller="Bom" class="btn btn-outline-secondary">
+                ← Back
+            </a>
+            <button type="submit" class="btn btn-primary flex-grow-1" id="verifyBtn">
+                Verify BOM →
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function () {
+        const btn = document.getElementById('verifyBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying... please wait';
+    });
+</script>

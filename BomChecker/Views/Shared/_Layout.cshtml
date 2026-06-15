@@ -1,0 +1,658 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BOM Checker</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+
+    <script>
+            (function () {
+                var saved = localStorage.getItem('bom-theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', saved);
+            })();
+    </script>
+
+    <style>
+            /* ── CSS VARIABLES ── */
+            :root,
+            [data-theme="dark"] {
+                --bg-primary: #050505;
+                --bg-secondary: #0A0A0A;
+                --bg-card: #111111;
+                --text-primary: #E0E0E0;
+                --text-muted: #888888;
+                --text-secondary: #aaaaaa;
+                --border-color: #1A1A1A;
+                --border-subtle: #151515;
+                --accent-blue: #0088FF;
+                --accent-green: #39FF14;
+                --accent-amber: #FFB800;
+                --footer-text: #444444;
+                --navbar-shadow: rgba(0,0,0,0.5);
+                --toggler-filter: invert(1);
+                --table-stripe: rgba(255,255,255,0.02);
+                --badge-smt-bg: #0d3b6e;
+                --badge-smt-text: #7ec8ff;
+                --badge-th-bg: #0a3d1a;
+                --badge-th-text: #5dcc7a;
+                --badge-strong-bg: #0a3d1a;
+                --badge-strong-text: #5dcc7a;
+                --badge-partial-bg: #3d2e00;
+                --badge-partial-text: #ffd166;
+                --badge-weak-bg: #3d0d0d;
+                --badge-weak-text: #ff6b6b;
+                --badge-msl-bg: #2a1f00;
+                --badge-msl-text: #ffcc5c;
+                --card-bg: #0f0f0f;
+                --card-border: #1e1e1e;
+                --input-bg: #0d0d0d;
+                --input-border: #222222;
+                --input-text: #E0E0E0;
+            }
+
+            [data-theme="light"] {
+                --bg-primary: #F0F2F5;
+                --bg-secondary: #FFFFFF;
+                --bg-card: #E8EAED;
+                --text-primary: #111111;
+                --text-muted: #555555;
+                --text-secondary: #333333;
+                --border-color: #CCCCCC;
+                --border-subtle: #DDDDDD;
+                --accent-blue: #0066CC;
+                --accent-green: #1A7A00;
+                --accent-amber: #B87000;
+                --footer-text: #777777;
+                --navbar-shadow: rgba(0,0,0,0.1);
+                --toggler-filter: none;
+                --table-stripe: rgba(0,0,0,0.04);
+                --badge-smt-bg: #d0e8ff;
+                --badge-smt-text: #004a99;
+                --badge-th-bg: #d4f0dd;
+                --badge-th-text: #145a2a;
+                --badge-strong-bg: #d4f0dd;
+                --badge-strong-text: #145a2a;
+                --badge-partial-bg: #fff3cd;
+                --badge-partial-text: #7a5500;
+                --badge-weak-bg: #fde8e8;
+                --badge-weak-text: #8b1a1a;
+                --badge-msl-bg: #fff3cd;
+                --badge-msl-text: #7a5500;
+                --card-bg: #ffffff;
+                --card-border: #dddddd;
+                --input-bg: #ffffff;
+                --input-border: #bbbbbb;
+                --input-text: #111111;
+            }
+
+            /* ── GLOBAL ── */
+            * {
+                transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            }
+
+            body {
+                background-color: var(--bg-primary);
+                color: var(--text-primary);
+                font-family: 'Rajdhani', sans-serif;
+            }
+
+            /* ── NAVBAR ── */
+            .rm-navbar {
+                background-color: var(--bg-secondary);
+                border-bottom: 1px solid var(--border-color);
+                border-top: 3px solid var(--accent-blue);
+                padding: 12px 0;
+                box-shadow: 0 4px 20px var(--navbar-shadow);
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            .rm-navbar-brand {
+                font-family: 'Space Mono', monospace;
+                font-size: 1.3rem;
+                font-weight: 700;
+                color: var(--text-primary) !important;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+            }
+
+                .rm-navbar-brand span {
+                    color: var(--accent-blue);
+                }
+
+            .rm-nav-link {
+                color: var(--text-muted) !important;
+                font-family: 'Space Mono', monospace;
+                font-size: 0.78rem;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                transition: all 0.3s ease;
+                padding: 8px 12px !important;
+                border: 1px solid transparent;
+                white-space: nowrap;
+            }
+
+                .rm-nav-link:hover, .rm-nav-link:focus {
+                    color: var(--accent-green) !important;
+                    border: 1px solid var(--border-color);
+                    background-color: rgba(128,128,128,0.05);
+                }
+
+                .rm-nav-link.active-link {
+                    color: var(--accent-blue) !important;
+                    border: 1px solid var(--accent-blue);
+                }
+
+            /* ── THEME TOGGLE ── */
+            .theme-toggle-btn {
+                background: transparent;
+                border: 1px solid var(--border-color);
+                color: var(--text-muted);
+                font-family: 'Space Mono', monospace;
+                font-size: 0.72rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                padding: 6px 12px;
+                cursor: pointer;
+                border-radius: 3px;
+                white-space: nowrap;
+                margin-left: 10px;
+            }
+
+                .theme-toggle-btn:hover {
+                    border-color: var(--accent-blue);
+                    color: var(--accent-blue);
+                    background-color: rgba(0,136,255,0.05);
+                }
+
+            /* ── HISTORY BUTTON ── */
+            .rm-history-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                background: transparent;
+                border: 1px solid var(--border-color);
+                color: var(--text-muted);
+                font-family: 'Space Mono', monospace;
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                padding: 5px 12px;
+                cursor: pointer;
+                border-radius: 3px;
+                white-space: nowrap;
+                margin-left: 8px;
+                text-decoration: none;
+                transition: all 0.2s ease;
+            }
+
+                .rm-history-btn:hover {
+                    border-color: var(--accent-amber);
+                    color: var(--accent-amber);
+                    background-color: rgba(255,184,0,0.05);
+                    text-decoration: none;
+                }
+
+            /* ── NEW UPLOAD BUTTON ── */
+            .rm-upload-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                background: transparent;
+                border: 1px solid var(--accent-blue);
+                color: var(--accent-blue);
+                font-family: 'Space Mono', monospace;
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                padding: 5px 12px;
+                cursor: pointer;
+                border-radius: 3px;
+                white-space: nowrap;
+                margin-left: 8px;
+                text-decoration: none;
+                transition: all 0.2s ease;
+            }
+
+                .rm-upload-btn:hover {
+                    background-color: var(--accent-blue);
+                    color: #000;
+                    text-decoration: none;
+                }
+
+            /* ── FOOTER ── */
+            .rm-footer {
+                background-color: var(--bg-primary);
+                border-top: 1px solid var(--border-subtle) !important;
+                color: var(--footer-text);
+                font-family: 'Space Mono', monospace;
+                font-size: 0.72rem;
+                padding: 25px 0;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                margin-top: auto;
+            }
+
+                .rm-footer a {
+                    color: var(--accent-blue);
+                    text-decoration: none;
+                }
+
+                    .rm-footer a:hover {
+                        color: var(--text-primary);
+                    }
+
+            /* ── LAYOUT ── */
+            html, body {
+                height: 100%;
+            }
+
+            .wrapper {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .main-content {
+                flex: 1;
+            }
+
+            /* ── CARDS ── */
+            .card {
+                background-color: var(--card-bg) !important;
+                border-color: var(--card-border) !important;
+                color: var(--text-primary) !important;
+            }
+
+            /* ── FORMS ── */
+            .form-control, .form-select {
+                background-color: var(--input-bg) !important;
+                border-color: var(--input-border) !important;
+                color: var(--input-text) !important;
+            }
+
+                .form-control:focus, .form-select:focus {
+                    border-color: var(--accent-blue) !important;
+                    box-shadow: 0 0 0 2px rgba(0,136,255,0.15) !important;
+                }
+
+            .form-check-input {
+                background-color: var(--input-bg);
+                border-color: var(--input-border);
+            }
+
+                .form-check-input:checked {
+                    background-color: var(--accent-blue);
+                    border-color: var(--accent-blue);
+                }
+
+            .form-text {
+                color: var(--text-muted) !important;
+            }
+
+            label {
+                color: var(--text-primary) !important;
+            }
+
+            /* ── TABLES ── */
+            .table {
+                color: var(--text-primary) !important;
+                border-color: var(--border-color) !important;
+            }
+
+                .table th {
+                    font-size: 11px;
+                    background-color: var(--bg-secondary) !important;
+                }
+
+            .table-light {
+                background-color: var(--bg-secondary) !important;
+                color: var(--text-primary) !important;
+            }
+
+            .table-hover tbody tr:hover {
+                background-color: var(--table-stripe) !important;
+            }
+
+            .table-dark,
+            thead.table-dark,
+            thead.table-dark tr,
+            thead.table-dark th {
+                background-color: var(--bg-secondary) !important;
+                color: var(--text-primary) !important;
+                border-color: var(--border-color) !important;
+            }
+
+            thead tr:first-child th {
+                background-color: var(--bg-card) !important;
+                color: var(--accent-blue) !important;
+                border-color: var(--border-color) !important;
+                font-family: 'Space Mono', monospace;
+                font-size: 10px;
+                letter-spacing: 1px;
+            }
+
+            thead tr:last-child th {
+                background-color: var(--bg-secondary) !important;
+                color: var(--text-primary) !important;
+            }
+
+            tbody tr {
+                background-color: var(--bg-primary) !important;
+            }
+
+                tbody tr:nth-child(even) {
+                    background-color: var(--bg-secondary) !important;
+                }
+
+            /* ── ALERTS ── */
+            .alert-danger {
+                background-color: rgba(255,7,58,0.1) !important;
+                border-color: rgba(255,7,58,0.3) !important;
+                color: #ff6b6b !important;
+            }
+
+            .alert-warning {
+                background-color: rgba(255,184,0,0.1) !important;
+                border-color: rgba(255,184,0,0.3) !important;
+                color: var(--accent-amber) !important;
+            }
+
+            .alert-success {
+                background-color: rgba(57,255,20,0.08) !important;
+                border-color: rgba(57,255,20,0.2) !important;
+                color: var(--accent-green) !important;
+            }
+
+            .alert-info {
+                background-color: rgba(0,136,255,0.08) !important;
+                border-color: rgba(0,136,255,0.2) !important;
+                color: var(--accent-blue) !important;
+            }
+
+            /* ── BUTTONS ── */
+            .btn-primary {
+                background-color: var(--accent-blue) !important;
+                border-color: var(--accent-blue) !important;
+            }
+
+            .btn-outline-secondary {
+                border-color: var(--border-color) !important;
+                color: var(--text-muted) !important;
+            }
+
+                .btn-outline-secondary:hover {
+                    background-color: var(--border-color) !important;
+                    color: var(--text-primary) !important;
+                }
+
+            .btn-outline-primary {
+                border-color: var(--accent-blue) !important;
+                color: var(--accent-blue) !important;
+            }
+
+                .btn-outline-primary:hover {
+                    background-color: var(--accent-blue) !important;
+                    color: #000000 !important;
+                }
+
+            .btn-outline-danger {
+                border-color: #ff073a !important;
+                color: #ff6b6b !important;
+            }
+
+                .btn-outline-danger:hover {
+                    background-color: rgba(255,7,58,0.1) !important;
+                }
+
+            .btn-success {
+                background-color: #1a6e2e !important;
+                border-color: #1a6e2e !important;
+            }
+
+            .btn-outline-success {
+                border-color: #1a6e2e !important;
+                color: var(--accent-green) !important;
+            }
+
+                .btn-outline-success:hover {
+                    background-color: #1a6e2e !important;
+                    color: #ffffff !important;
+                }
+
+            /* ── MATCH % BADGES & COMPONENT STATUSES ── */
+            .badge-strong, .badge-partial, .badge-weak, .badge-smt, .badge-th, .badge-msl, .badge-best {
+                padding: 4px 8px;
+                border-radius: 3px;
+                display: inline-block;
+                font-weight: 600;
+            }
+
+            .badge-strong {
+                background: var(--badge-strong-bg) !important;
+                color: var(--badge-strong-text) !important;
+            }
+
+            .badge-partial {
+                background: var(--badge-partial-bg) !important;
+                color: var(--badge-partial-text) !important;
+            }
+
+            .badge-weak {
+                background: var(--badge-weak-bg) !important;
+                color: var(--badge-weak-text) !important;
+            }
+
+            .badge-smt {
+                background: var(--badge-smt-bg) !important;
+                color: var(--badge-smt-text) !important;
+            }
+
+            .badge-th {
+                background: var(--badge-th-bg) !important;
+                color: var(--badge-th-text) !important;
+            }
+
+            .badge-msl {
+                background: var(--badge-msl-bg) !important;
+                color: var(--badge-msl-text) !important;
+            }
+
+            .badge-best {
+                background: var(--badge-strong-bg) !important;
+                color: var(--badge-strong-text) !important;
+            }
+
+            /* ── TEXT HELPERS ── */
+            .text-muted {
+                color: var(--text-muted) !important;
+            }
+
+            .text-secondary {
+                color: var(--text-secondary) !important;
+            }
+
+            small {
+                color: var(--text-muted) !important;
+            }
+
+            /* ── SPINNER ── */
+            .spinner-border {
+                color: var(--accent-blue);
+            }
+
+            /* ── RESPONSIVE ── */
+            @@media (max-width: 576px) {
+                .rm-navbar-brand {
+                    font-size: 1rem;
+                    letter-spacing: 1px;
+                }
+
+                .theme-toggle-btn, .rm-upload-btn, .rm-history-btn {
+                    width: 100%;
+                    margin: 4px 0 0 0;
+                    text-align: center;
+                    justify-content: center;
+                }
+
+                .rm-footer {
+                    font-size: 0.65rem;
+                    letter-spacing: 1px;
+                    padding: 18px 0;
+                }
+            }
+
+            @@media (max-width: 768px) {
+                .rm-nav-link {
+                    font-size: 0.75rem;
+                    padding: 6px 8px !important;
+                }
+            }
+
+            /* ════════════════════════════════════════════════════════════
+                           CRITICAL RE-OVERRIDE SECTION
+                           Forces text colors to break through native Bootstrap 5 classes
+                           ════════════════════════════════════════════════════════════ */
+
+            /* Explicit Dark Mode Overrides */
+            [data-theme="dark"] .table,
+            [data-theme="dark"] .table th,
+            [data-theme="dark"] .table td,
+            [data-theme="dark"] .table > :not(caption) > * > * {
+                color: #E0E0E0 !important;
+                background-color: transparent;
+            }
+
+            /* Explicit Light Mode Overrides */
+            [data-theme="light"] .table,
+            [data-theme="light"] .table th,
+            [data-theme="light"] .table td,
+            [data-theme="light"] .table > :not(caption) > * > * {
+                color: #111111 !important;
+                background-color: transparent;
+            }
+
+            /* Maintain specific light/dark background rows independently */
+            [data-theme="dark"] tbody tr:nth-child(odd) {
+                background-color: #050505 !important;
+            }
+
+            [data-theme="dark"] tbody tr:nth-child(even) {
+                background-color: #0A0A0A !important;
+            }
+
+            [data-theme="light"] tbody tr:nth-child(odd) {
+                background-color: #F0F2F5 !important;
+            }
+
+            [data-theme="light"] tbody tr:nth-child(even) {
+                background-color: #FFFFFF !important;
+            }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm rm-navbar mb-3">
+                <div class="container-fluid">
+
+                    <a class="navbar-brand rm-navbar-brand" asp-controller="Bom" asp-action="Index">
+                        BOM<span>_CHECKER</span>
+                    </a>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon" style="filter: var(--toggler-filter);"></span>
+                    </button>
+
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between align-items-center">
+
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="nav-link rm-nav-link" asp-controller="Bom" asp-action="Index">
+                                    [ UPLOAD_BOM ]
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link rm-nav-link" asp-controller="Bom" asp-action="History">
+                                    [ REPORT_HISTORY ]
+                                </a>
+                            </li>
+                        </ul>
+
+                        <div class="d-flex align-items-center flex-wrap">
+
+                            <a asp-controller="Bom" asp-action="History" class="rm-history-btn">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="12 8 12 12 14 14" />
+                                    <path d="M3.05 11a9 9 0 1 0 .5-4.5" />
+                                    <polyline points="3 3 3 7 7 7" />
+                                </svg>
+                                [ HISTORY ]
+                            </a>
+
+                            <a asp-controller="Bom" asp-action="Index" class="rm-upload-btn">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="17 8 12 3 7 8" />
+                                    <line x1="12" y1="3" x2="12" y2="15" />
+                                </svg>
+                                [ NEW_UPLOAD ]
+                            </a>
+
+                            <button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">
+                                🌙 DARK_MODE
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <div class="container-fluid main-content">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+
+        <footer class="rm-footer text-center">
+            <div class="container">
+                &copy; 2026 VINROX — BOM_CHECKER — COMPONENT VERIFICATION SYSTEM
+            </div>
+        </footer>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function toggleTheme() {
+        var current = document.documentElement.getAttribute('data-theme');
+        var next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('bom-theme', next);
+        updateToggleButton(next);
+        }
+
+        function updateToggleButton(theme) {
+        var btn = document.getElementById('themeToggle');
+        if (!btn) return;
+        btn.textContent = theme === 'dark' ? '🌙 DARK_MODE' : '☀️ LIGHT_MODE';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+        var saved = localStorage.getItem('bom-theme') || 'dark';
+        updateToggleButton(saved);
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
